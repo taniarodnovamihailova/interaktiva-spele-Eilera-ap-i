@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="lv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUIZ TIME — Interaktīvā spēle</title>
+<style>
+  :root{
+    --pink:#e91e63;
+    --pink2:#ff4081;
+    --cream:#fff7d8;
+    --orange:#ffad1f;
+    --green:#63c58f;
+    --blue:#28a8e0;
+    --ink:#25313b;
+    --card:#fffdf1;
+    --shadow:0 16px 40px rgba(55,45,20,.14);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: ui-rounded, "Trebuchet MS", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 10% 10%, rgba(99,197,143,.22) 0 90px, transparent 92px),
+      radial-gradient(circle at 92% 12%, rgba(255,173,31,.22) 0 75px, transparent 77px),
+      linear-gradient(135deg,#fff9df,#fff2ca);
+    overflow-x:hidden;
+  }
+  .shell{max-width:1150px;margin:0 auto;padding:28px 20px 46px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+  .brand{
+    font-weight:1000;letter-spacing:2px;color:var(--pink);
+    font-size:clamp(26px,4vw,46px);line-height:.95;
+    text-shadow:2px 3px 0 #fff;
+  }
+  .scorebox{
+    display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end
+  }
+  .pill{
+    background:#fff; border:3px solid var(--ink); border-radius:999px;
+    padding:8px 14px;font-weight:900;box-shadow:4px 4px 0 var(--ink)
+  }
+  .hero{
+    background:rgba(255,255,255,.72);border:4px solid var(--ink);border-radius:28px;
+    padding:28px;box-shadow:var(--shadow);position:relative;overflow:hidden
+  }
+  .hero:after,.hero:before{
+    content:"";position:absolute;width:110px;height:26px;border:7px solid var(--green);
+    border-color:var(--green) transparent transparent transparent;border-radius:50%;
+    transform:rotate(-12deg);opacity:.7
+  }
+  .hero:before{left:-30px;top:22px}
+  .hero:after{right:-35px;bottom:24px;transform:rotate(155deg)}
+  h1,h2,h3{margin:0 0 12px}
+  h1{font-size:clamp(34px,6vw,68px);color:var(--pink);text-transform:uppercase}
+  h2{font-size:clamp(28px,4vw,48px)}
+  p{font-size:18px;line-height:1.45}
+  .center{text-align:center}
+  .muted{opacity:.75}
+  .grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .memory-grid{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0
+  }
+  .memory-col{
+    min-height:220px;background:#fff;border:4px dashed var(--ink);
+    border-radius:22px;padding:16px;text-align:center
+  }
+  .memory-col.left{background:linear-gradient(160deg,#fff,#eef9ff)}
+  .memory-col.mid{background:linear-gradient(160deg,#fff,#fff4e0)}
+  .memory-col.right{background:linear-gradient(160deg,#fff,#ffeaf2)}
+  .memory-title{font-size:15px;text-transform:uppercase;font-weight:1000;letter-spacing:.8px}
+  .icons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px}
+  .icon{
+    width:74px;height:74px;border-radius:20px;background:#fff;
+    border:3px solid var(--ink);display:flex;align-items:center;justify-content:center;
+    font-size:42px;box-shadow:4px 4px 0 rgba(37,49,59,.85)
+  }
+  .cta{
+    appearance:none;border:4px solid var(--ink);background:var(--orange);color:var(--ink);
+    border-radius:18px;padding:13px 20px;font-size:18px;font-weight:1000;cursor:pointer;
+    box-shadow:6px 6px 0 var(--ink);transition:.12s transform,.12s box-shadow;
+  }
+  .cta:hover{transform:translate(2px,2px);box-shadow:4px 4px 0 var(--ink)}
+  .cta.secondary{background:#fff}
+  .cta.pink{background:var(--pink);color:#fff}
+  .question-card{
+    background:var(--card);border:4px solid var(--ink);border-radius:26px;
+    padding:25px;box-shadow:var(--shadow);margin-top:18px
+  }
+  .progress{height:14px;background:#fff;border:3px solid var(--ink);border-radius:99px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,var(--pink),var(--orange));width:0%;transition:width .25s}
+  .meta{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:12px 0}
+  .question-visual{display:flex;justify-content:center;margin:18px 0}
+  .big-icon{
+    width:190px;height:190px;border-radius:42px;background:#fff;border:6px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:105px;
+    box-shadow:10px 10px 0 var(--pink)
+  }
+  .choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .choice{
+    border:4px solid var(--ink);background:#fff;border-radius:20px;padding:16px;
+    min-height:120px;cursor:pointer;font-weight:1000;font-size:18px;transition:.13s;
+    box-shadow:5px 5px 0 var(--ink);text-align:center
+  }
+  .choice:hover{transform:translateY(-3px)}
+  .choice .emoji{font-size:31px;display:block;margin-bottom:5px}
+  .choice.correct{background:#c9f6dc}
+  .choice.wrong{background:#ffd5df}
+  .choice.disabled{cursor:default;opacity:.92}
+  .feedback{
+    margin-top:16px;padding:13px 16px;border-radius:16px;border:3px solid var(--ink);
+    font-weight:900;background:#fff
+  }
+  .feedback.good{background:#c9f6dc}
+  .feedback.bad{background:#ffd5df}
+  .nextrow{display:flex;justify-content:center;margin-top:16px}
+  .round-banner{
+    display:inline-block;background:var(--green);border:4px solid var(--ink);
+    border-radius:999px;padding:8px 16px;font-weight:1000
+  }
+  .final-score{
+    font-size:clamp(64px,12vw,130px);font-weight:1000;color:var(--pink);line-height:1
+  }
+  .name-field{
+    width:min(520px,100%);padding:14px 18px;border:4px solid var(--ink);
+    border-radius:16px;font-size:20px;font-weight:800;background:#fff
+  }
+  .small{font-size:14px}
+  .hidden{display:none!important}
+  .footer{text-align:center;margin-top:18px;opacity:.62;font-size:13px}
+  @media(max-width:820px){
+    .memory-grid,.choices,.grid2{grid-template-columns:1fr}
+    .topbar{align-items:flex-start}
+    .scorebox{max-width:48%}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="topbar">
+    <div class="brand">QUIZ<br>TIME</div>
+    <div class="scorebox">
+      <div class="pill" id="playerPill">Spēlētājs: —</div>
+      <div class="pill">Balles: <span id="score">0</span></div>
+    </div>
+  </div>
+
+  <section class="hero" id="startScreen">
+    <div class="center">
+      <div class="round-banner">INTERAKTĪVA VERSIJA</div>
+      <h1>Vai esi gatavs?</h1>
+      <p class="muted">Iegaumē objektu izvietojumu trīs raundos un pēc tam izvēlies, kurai zonai pieder katrs objekts.</p>
+      <p><b>Noteikumi:</b> atbildi uz jautājumiem, krāj balles un kļūsti par čempionu.</p>
+      <div style="margin:20px auto;max-width:520px">
+        <input id="playerName" class="name-field" placeholder="Ievadi savu vārdu" maxlength="24">
+      </div>
+      <button class="cta pink" onclick="startGame()">Sākt spēli</button>
+    </div>
+  </section>
+
+  <section class="hero hidden" id="memoryScreen">
+    <div class="center">
+      <div class="round-banner" id="memoryRound">1. RAUNDS</div>
+      <h2 id="memoryTitle">Iegaumē!</h2>
+      <p id="memoryRule"></p>
+    </div>
+    <div class="memory-grid" id="memoryGrid"></div>
+    <div class="center">
+      <button class="cta" onclick="beginQuestions()">Esmu gatavs!</button>
+    </div>
+  </section>
+
+  <section class="hero hidden" id="questionScreen">
+    <div class="meta">
+      <div class="round-banner" id="questionRound">1. RAUNDS</div>
+      <div><b id="questionCounter">1 / 10</b></div>
+    </div>
+    <div class="progress"><div id="progressFill"></div></div>
+    <div class="question-card">
+      <div class="center">
+        <div class="muted">Kurā zonā jāatrodas šim objektam?</div>
+        <div class="question-visual"><div class="big-icon" id="questionIcon">❓</div></div>
+        <h2 id="questionName">Objekts</h2>
+      </div>
+      <div class="choices" id="choices"></div>
+      <div id="feedback" class="feedback hidden"></div>
+      <div class="nextrow">
+        <button id="nextBtn" class="cta hidden" onclick="nextQuestion()">Nākamais</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="hero hidden" id="finalScreen">
+    <div class="center">
+      <div class="round-banner">ČEMPIONS</div>
+      <h2 id="finalGreeting">Lielisks darbs!</h2>
+      <div class="final-score"><span id="finalScore">0</span></div>
+      <p id="finalDetails"></p>
+      <button class="cta pink" onclick="restart()">Spēlēt vēlreiz</button>
+    </div>
+  </section>
+
+  <div class="footer">Veidots pēc pievienotās “QUIZ TIME” prezentācijas struktūras: 3 raundi, iegaumēšana, atbildes un gala rezultāts.</div>
+</div>
+
+<script>
+const rounds = [
+  {
+    title:"1. RAUNDS",
+    rule:"PA KREISI: APAĻŠ · PA VIDU: SARKANS UN APAĻŠ · PA LABI: SARKANS",
+    categories:[
+      {key:"left", emoji:"⚪", name:"Pa kreisi", desc:"apaļš"},
+      {key:"mid", emoji:"🔴", name:"Pa vidu", desc:"sarkans un apaļš"},
+      {key:"right", emoji:"🟥", name:"Pa labi", desc:"sarkans"}
+    ],
+    items:[
+      {emoji:"🍩",name:"Donuts",zone:"left"},
+      {emoji:"🧶",name:"Dzija",zone:"left"},
+      {emoji:"☀️",name:"Saule",zone:"left"},
+      {emoji:"🕒",name:"Pulkstenis",zone:"left"},
+      {emoji:"⚽",name:"Futbola bumba",zone:"left"},
+      {emoji:"🐞",name:"Mārīte",zone:"mid"},
+      {emoji:"🍒",name:"Ķirši",zone:"mid"},
+      {emoji:"🔥",name:"Uguns",zone:"right"},
+      {emoji:"💗",name:"Sirds",zone:"right"},
+      {emoji:"✂️",name:"Šķēres",zone:"right"},
+    ]
+  },
+  {
+    title:"2. RAUNDS",
+    rule:"PA KREISI: NO PLASTMASAS · PA VIDU: NO PLASTMASAS UN PAPĪRA · PA LABI: NO PAPĪRA",
+    categories:[
+      {key:"left", emoji:"🧴", name:"Pa kreisi", desc:"plastmasa"},
+      {key:"mid", emoji:"♻️", name:"Pa vidu", desc:"plastmasa un papīrs"},
+      {key:"right", emoji:"📄", name:"Pa labi", desc:"papīrs"}
+    ],
+    items:[
+      {emoji:"🧴",name:"Pudele",zone:"left"},
+      {emoji:"🧩",name:"Konstruktors",zone:"left"},
+      {emoji:"🖊️",name:"Pildspalva",zone:"left"},
+      {emoji:"🍴",name:"Dakšas, karotes",zone:"mid"},
+      {emoji:"📓",name:"Piezīmju burtnīca",zone:"mid"},
+      {emoji:"🥤",name:"Papīra glāze",zone:"mid"},
+      {emoji:"✉️",name:"Aploksne",zone:"right"},
+      {emoji:"📕",name:"Grāmata",zone:"right"},
+    ]
+  },
+  {
+    title:"3. RAUNDS",
+    rule:"PA KREISI: DZĪVS · PA VIDU: LIELS UN DZĪVS · PA LABI: LIELS",
+    categories:[
+      {key:"left", emoji:"🌱", name:"Pa kreisi", desc:"dzīvs"},
+      {key:"mid", emoji:"🐘", name:"Pa vidu", desc:"dzīvs un liels"},
+      {key:"right", emoji:"🏠", name:"Pa labi", desc:"liels"}
+    ],
+    items:[
+      {emoji:"🐟",name:"Zivs",zone:"left"},
+      {emoji:"🐝",name:"Bite",zone:"left"},
+      {emoji:"🌸",name:"Augs",zone:"left"},
+      {emoji:"🌳",name:"Koki",zone:"mid"},
+      {emoji:"🐘",name:"Zilonis",zone:"mid"},
+      {emoji:"🐋",name:"Valis",zone:"mid"},
+      {emoji:"🚢",name:"Kuģis",zone:"right"},
+      {emoji:"🌉",name:"Tilts",zone:"right"},
+      {emoji:"🏠",name:"Māja",zone:"right"},
+    ]
+  }
+];
+
+let roundIndex=0, qIndex=0, score=0, player="";
+let currentItems=[];
+
+const $ = id => document.getElementById(id);
+
+function show(id){
+  ["startScreen","memoryScreen","questionScreen","finalScreen"].forEach(x=>$(x).classList.add("hidden"));
+  $(id).classList.remove("hidden");
+}
+
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startGame(){
+  player=($("playerName").value.trim() || "Spēlētājs");
+  $("playerPill").textContent=`Spēlētājs: ${player}`;
+  score=0;roundIndex=0;qIndex=0;
+  $("score").textContent=score;
+  loadMemory();
+}
+
+function loadMemory(){
+  const r=rounds[roundIndex];
+  $("memoryRound").textContent=r.title;
+  $("memoryTitle").textContent="IEGAUMĒ!";
+  $("memoryRule").textContent=r.rule;
+  $("memoryGrid").innerHTML="";
+  const grouped={left:[],mid:[],right:[]};
+  r.items.forEach(x=>grouped[x.zone].push(x));
+  r.categories.forEach((c,idx)=>{
+    const col=document.createElement("div");
+    col.className="memory-col "+(idx===0?"left":idx===1?"mid":"right");
+    col.innerHTML=`<div class="memory-title">${c.name} — ${c.desc}</div>`;
+    const icons=document.createElement("div"); icons.className="icons";
+    grouped[c.key].forEach(item=>{
+      const el=document.createElement("div"); el.className="icon"; el.title=item.name; el.textContent=item.emoji;
+      icons.appendChild(el);
+    });
+    col.appendChild(icons);
+    $("memoryGrid").appendChild(col);
+  });
+  show("memoryScreen");
+}
+
+function beginQuestions(){
+  qIndex=0;
+  currentItems=shuffle(rounds[roundIndex].items);
+  loadQuestion();
+}
+
+function loadQuestion(){
+  const r=rounds[roundIndex], item=currentItems[qIndex];
+  $("questionRound").textContent=r.title;
+  $("questionCounter").textContent=`${qIndex+1} / ${currentItems.length}`;
+  $("progressFill").style.width=`${(qIndex/currentItems.length)*100}%`;
+  $("questionIcon").textContent=item.emoji;
+  $("questionName").textContent=item.name;
+  $("feedback").className="feedback hidden";
+  $("feedback").textContent="";
+  $("nextBtn").classList.add("hidden");
+
+  $("choices").innerHTML="";
+  r.categories.forEach(cat=>{
+    const btn=document.createElement("button");
+    btn.className="choice";
+    btn.innerHTML=`<span class="emoji">${cat.emoji}</span><div>${cat.name}</div><div class="small muted">${cat.desc}</div>`;
+    btn.onclick=()=>answer(btn,cat.key,item);
+    $("choices").appendChild(btn);
+  });
+  show("questionScreen");
+}
+
+function answer(btn,chosen,item){
+  const buttons=[...$("choices").querySelectorAll(".choice")];
+  buttons.forEach(b=>{b.disabled=true;b.classList.add("disabled")});
+  const correct=chosen===item.zone;
+  if(correct){
+    score++;
+    $("score").textContent=score;
+    btn.classList.add("correct");
+    $("feedback").className="feedback good";
+    $("feedback").textContent="✅ Pareizi! +1 balle";
+  } else {
+    btn.classList.add("wrong");
+    $("feedback").className="feedback bad";
+    const cat=rounds[roundIndex].categories.find(c=>c.key===item.zone);
+    $("feedback").textContent=`❌ Ne gluži. Pareizā zona: ${cat.name} (${cat.desc}).`;
+  }
+  $("feedback").classList.remove("hidden");
+  $("nextBtn").classList.remove("hidden");
+  $("progressFill").style.width=`${((qIndex+1)/currentItems.length)*100}%`;
+}
+
+function nextQuestion(){
+  qIndex++;
+  if(qIndex<currentItems.length){loadQuestion();return;}
+  roundIndex++;
+  if(roundIndex<rounds.length){loadMemory();return;}
+  finish();
+}
+
+function finish(){
+  $("finalScore").textContent=score;
+  const total=rounds.reduce((n,r)=>n+r.items.length,0);
+  $("finalGreeting").textContent=player+", apsveicu!";
+  $("finalDetails").innerHTML=`Tu pabeidzi visus <b>${rounds.length}</b> raundus un ieguvi <b>${score}</b> no <b>${total}</b> iespējamām ballēm.`;
+  show("finalScreen");
+}
+
+function restart(){
+  $("playerName").value=player;
+  show("startScreen");
+}
+</script>
+</body>
+</html>
